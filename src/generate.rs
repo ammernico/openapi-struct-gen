@@ -107,14 +107,14 @@ fn gen_type_name_for_type(t: Type) -> String {
             {
                 if let ReferenceOr::Reference { reference } = *reference {
                     format!(
-                        "serde_json::Map<String, {}>",
+                        "std::collections::BTreeMap<String, {}>",
                         reference.split('/').last().unwrap()
                     )
                 } else {
-                    "serde_json::Map<String, serde_json::Value>".into()
+                    "std::collections::BTreeMap<String, serde_json::Value>".into()
                 }
             } else {
-                "serde_json::Map<String, serde_json::Value>".into()
+                "std::collections::BTreeMap<String, serde_json::Value>".into()
             }
         }
         Type::Array(a) => gen_array_type(a),
