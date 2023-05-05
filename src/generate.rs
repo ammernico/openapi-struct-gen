@@ -101,7 +101,22 @@ fn gen_type_name_for_type(t: Type) -> String {
         Type::String(_) => "String".into(),
         Type::Number(f) => get_number_type(f),
         Type::Integer(f) => get_integer_type(f),
-        Type::Object(_) => "serde_json::Map<String, serde_json::Value>".into(),
+        Type::Object(o) => {
+            if let Some(openapiv3::AdditionalProperties::Schema(reference)) =
+                o.additional_properties
+            {
+                if let ReferenceOr::Reference { reference } = *reference {
+                    format!(
+                        "serde_json::Map<String, {}>",
+                        reference.split('/').last().unwrap()
+                    )
+                } else {
+                    "serde_json::Map<String, serde_json::Value>".into()
+                }
+            } else {
+                "serde_json::Map<String, serde_json::Value>".into()
+            }
+        }
         Type::Array(a) => gen_array_type(a),
         Type::Boolean {} => "bool".into(),
     }
@@ -204,7 +219,6 @@ fn generate_struct(
             scope.raw(&format!("pub type {} = {};", name, gen_array_type(a)));
         }
         t => {
-            println!("#{}: {:#?}", name, t);
             scope.raw(&format!(
                 "pub type {} = {};",
                 name,
