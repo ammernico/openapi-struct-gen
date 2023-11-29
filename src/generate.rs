@@ -212,7 +212,18 @@ fn generate_struct(
             for (name, refor) in obj.properties {
                 let is_required = required.contains(&name);
                 let t = get_property_type_from_schema_refor(refor.unbox(), is_required);
-                r#struct.field(&format!("pub {}", &name.to_snek_case().into_safe()), &t);
+                if t.contains("Vec") {
+                    r#struct.field(
+                        &format!(
+                            r#"#[serde(serialize_with = "serialize_vector")]
+                            pub {}"#,
+                            &name.to_snek_case().into_safe()
+                        ),
+                        &t,
+                    );
+                } else {
+                    r#struct.field(&format!("pub {}", &name.to_snek_case().into_safe()), &t);
+                }
             }
         }
         Type::Array(a) => {
